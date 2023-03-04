@@ -1,0 +1,8 @@
+0x00 : hours_start
+0x01 : minutes_start
+0x02: hours_stop_timer
+0x03: minutes_stop_timer
+0x04 ~ 0x07: battery_cutoff_voltage 
+0x08 ~ 0x11 : starts_voltage
+0x12~0x13: startup time
+0x14: run on battery voltage with out timer 	
