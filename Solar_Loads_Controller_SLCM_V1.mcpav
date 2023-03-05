@@ -8,7 +8,7 @@ Value=0
 [ACTIVE_TAB]
 Value=Solar_Loads_Controller_SLCM_V1.c
 [USE_EEPROM]
-Value=1
+Value=0
 [USE_HEAP]
 Value=0
 [HEAP_SIZE]
@@ -28,8 +28,7 @@ Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
 File0=Solar_Loads_Controller_SLCM_V1.c
-File1=ds1307.c
-Count=2
+Count=1
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]

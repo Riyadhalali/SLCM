@@ -1,7 +1,7 @@
-#line 1 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/ds1307.c"
-#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads controller mini slcm v1.0/mikroc/ds1307.h"
-#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads controller mini slcm v1.0/mikroc/ds1307.h"
-#line 7 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads controller mini slcm v1.0/mikroc/ds1307.h"
+#line 1 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/SLCM/ds1307.c"
+#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads controller mini slcm v1.0/mikroc/slcm/ds1307.h"
+#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads controller mini slcm v1.0/mikroc/slcm/ds1307.h"
+#line 7 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads controller mini slcm v1.0/mikroc/slcm/ds1307.h"
 void write_Ds1307(unsigned short Address, unsigned short w_data);
 unsigned short Read_DS1307(unsigned short Address);
 void Read_time();
@@ -58,7 +58,7 @@ typedef unsigned int uintptr_t;
 
 typedef signed long int intmax_t;
 typedef unsigned long int uintmax_t;
-#line 8 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/ds1307.c"
+#line 8 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/SLCM/ds1307.c"
 unsigned short Data;
 unsigned short reg_1;
 unsigned short reg_2;
@@ -128,7 +128,7 @@ Full_Hours=(reg_2<<4)+reg_1;
 Full_Hours=Bcd2Dec(Full_Hours);
 return Full_Hours;
 }
-#line 117 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/ds1307.c"
+#line 117 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/SLCM/ds1307.c"
 unsigned short ReadDate (unsigned short date_address)
 {
 Read_DS1307(date_address);
@@ -139,7 +139,7 @@ date=(reg_2<<4)+reg_1;
 date=Bcd2Dec(date);
 return date;
 }
-#line 156 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/ds1307.c"
+#line 156 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Controller Mini SLCM V1.0/MikroC/SLCM/ds1307.c"
 void Read_time()
 {
 

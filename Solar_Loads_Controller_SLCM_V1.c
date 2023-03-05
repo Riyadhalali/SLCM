@@ -7,7 +7,7 @@ timer 0    for load off give some time to load
 */
 //------------------------------------------------------------------------------
  /*
-   memory map
+   memory map   in epprom is : 7
    */
 //------------------------------------------------------------------------------
 #include "stdint.h"
@@ -292,21 +292,28 @@ if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1) Relay_L_Solar=1;
 
 }
 //******************Run on Battery Voltage without Timer Mode is ON*************
-if (AC_Available==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==1)
+if (AC_Available==1 && Timer_isOn==0 && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==1)
 {
-
 SecondsRealTimePv_ReConnect_T1++;
 Delay_ms(200);
 if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)     Relay_L_Solar=1;
 }
-//------------------------------------------------------------------------------
 
-//--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled
-if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && Timer_isOn==1 && RunWithOutBattery==false)
+//--------------------------Turn Off Loads for Low battery----------------------
+
+//--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled and timer is enabled
+if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && Timer_isOn==1 && RunWithOutBattery==false && RunOnBatteryVoltageWithoutTimer_Flag==0)
 {
 SecondsRealTimePv_ReConnect_T1=0;
 Start_Timer_0_A();         // give some time for battery voltage
 }
+//-> turn off loads when battery voltage is low and timer is not enabled and run on battery voltage without timer is enabled
+if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && RunWithOutBattery==false && RunOnBatteryVoltageWithoutTimer_Flag==1)
+{
+SecondsRealTimePv_ReConnect_T1=0;
+Start_Timer_0_A();         // give some time for battery voltage
+}
+
 }// end of check timers
 //******************************************************************************
 //---------------------------------Enter Programs ------------------------------
@@ -945,14 +952,14 @@ void CheckForTimerActivationInRange()
 {
 
 //-a to turn on loadsinside range
-if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2  )
+if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2 && RunOnBatteryVoltageWithoutTimer_Flag==0  )
 {
 Timer_isOn=1;
 
 }
 
 //-b----------------------------------------------------------------------------
-if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() == hours_lcd_2 )
+if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() == hours_lcd_2  && RunOnBatteryVoltageWithoutTimer_Flag==0)
 {
 // study the state
 if(ReadMinutes() < minutes_lcd_2)        // starts the load
@@ -966,7 +973,7 @@ Timer_isOn=1;
 void TurnLoadsOffWhenGridOff()
 {
 
-if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0 )
+if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageWithoutTimer_Flag==0)
 {
 SecondsRealTime=0;
 Relay_L_Solar=0;
@@ -1190,6 +1197,7 @@ Screen_1();       // for reading time
 Check_Timers();
 TurnLoadsOffWhenGridOff();       // sometine when grid comes fast and cut it will not make interrupt so this second check for loads off
 Delay_ms(200);
+
 /*Grid_indicator=1;
 Delay_ms(1000);
 Grid_indicator=0;
