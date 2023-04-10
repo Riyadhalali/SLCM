@@ -28,14 +28,16 @@ Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
 File0=Solar_Loads_Controller_SLCM_V1.c
-Count=1
+File1=ds1307.c
+Count=2
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]
 Count=0
 [OTHER_FILES]
 File0=Solar_Loads_Controller_SLCM_V1.hex
-Count=1
+File1=Solar_Loads_Controller_SLCM_V1_õEEPROM.hex
+Count=2
 [SEARCH_PATH]
 Path0=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Uses\lte64kw\
 Path1=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FAT32 Library\Uses\
@@ -51,7 +53,9 @@ Path3=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT8
 Path4=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT812\Uses\
 Count=5
 [HEADERS]
-Count=0
+File0=ds1307.h
+File1=millis.h
+Count=2
 [PLDS]
 Count=0
 [Useses]
@@ -107,4 +111,6 @@ File48=UART
 Count=49
 [EXPANDED_NODES]
 0=Solar_Loads_Controller_SLCM_V1.mcpav
-Count=1
+1=Sources
+4=Header Files
+Count=3

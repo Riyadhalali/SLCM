@@ -6,3 +6,5 @@
 0x08 ~ 0x11 : starts_voltage
 0x12~0x13: startup time
 0x14: run on battery voltage with out timer 	
+0x15~0x16 : cut time for loads 
+0x17: Ups_mode 

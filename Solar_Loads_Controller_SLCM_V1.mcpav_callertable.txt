@@ -11,23 +11,15 @@ main
 	Config_Interrupts
 	ReadBytesFromEEprom
 		EEPROM_Read
+	WelcomeScreen
+		Display_On_7Segment_Character
 	Timer_2_Init_Screen
 	Timer_1_A_ReadBattery_Init
 	CheckForSet
 		Button
 			Delay_500us
 		SetUpProgram
-			SetTimerOn_1
-				Display_On_7Segment_Character
-				Display_On_7Segment
-					Div_8x8_U
-					Div_16x16_S
-				EEPROM_Write
-			SetTimerOff_1
-				Display_On_7Segment_Character
-				Display_On_7Segment
-				EEPROM_Write
-			SetLowBatteryVoltage
+			SetBatteryVoltageError
 				Display_On_7Segment_Character
 				Display_On_7Segment_Float
 					float_fpmul1
@@ -42,28 +34,49 @@ main
 						float_unpacku
 						float_neg32
 					Div_16x16_S
+				fabs
+					float_op_less
+						float_fpcmp1
+							float_fpcmp
+								float_fpsub
+									float_fpadd_alt
+										float_unpacks
+											float_unpacku
+											float_neg32
+										float_neg32
+										float_normalize_and_pack
+										float_pack
+										float_tstr16_r19
+								float_tstr16_r19
 				StoreBytesIntoEEprom
 					EEPROM_Write
+				EEPROM_Write
 				float_fpadd1
 					float_fpadd
 						float_fpadd_alt
-							float_unpacks
-								float_unpacku
-								float_neg32
-							float_neg32
-							float_normalize_and_pack
-							float_pack
-							float_tstr16_r19
 				float_fpsub1
 					float_fpsub
-						float_fpadd_alt
 				float_op_big
 					float_fpcmp
-						float_fpsub
-						float_tstr16_r19
 				float_op_less
-					float_fpcmp1
-						float_fpcmp
+			SetTimerOn_1
+				Display_On_7Segment_Character
+				Display_On_7Segment
+					Div_8x8_U
+					Div_16x16_S
+				EEPROM_Write
+			SetTimerOff_1
+				Display_On_7Segment_Character
+				Display_On_7Segment
+				EEPROM_Write
+			SetLowBatteryVoltage
+				Display_On_7Segment_Character
+				Display_On_7Segment_Float
+				StoreBytesIntoEEprom
+				float_fpadd1
+				float_fpsub1
+				float_op_big
+				float_op_less
 			SetStartUpLoadsVoltage
 				Display_On_7Segment_Character
 				Display_On_7Segment_Float
@@ -77,6 +90,16 @@ main
 				Display_On_7Segment
 				StoreBytesIntoEEprom
 			RunOnBatteryVoltageWithoutTimer
+				Display_On_7Segment_Character
+				EEPROM_Write
+			CutLoadsTime
+				Display_On_7Segment_Character
+				Display_On_7Segment
+				StoreBytesIntoEEprom
+			UPSMode
+				Display_On_7Segment_Character
+				EEPROM_Write
+			UPOMode
 				Display_On_7Segment_Character
 				EEPROM_Write
 			SetDS1307_Time
@@ -113,12 +136,11 @@ main
 					Bcd2Dec
 				Write_Date
 					write_Ds1307
-	CheckForTimerActivationInRange
-		ReadHours
-		ReadMinutes
-	AutoRunWithOutBatteryProtection
-		float_op_equ
+	CheckSystemBatteryMode
+		float_op_gequ
 			float_fpcmp1
+		float_op_lequ
+			float_fpcmp
 	RunTimersNowCheck
 		Button
 		EEPROM_FactorySettings
@@ -126,6 +148,14 @@ main
 			StoreBytesIntoEEprom
 		EEPROM_Load
 		Display_On_7Segment_Character
+	WorkingMode
+	WDT_Enable
+	CheckForTimerActivationInRange
+		ReadHours
+		ReadMinutes
+	CheckForTimerActivationOutRange
+		ReadHours
+		ReadMinutes
 	Screen_1
 		Read_time
 			Read_DS1307
@@ -138,12 +168,13 @@ main
 			Dec2Bcd
 		Start_Timer_0_A
 		float_op_gequ
-			float_fpcmp1
 		float_op_less
+	WDT_Disable
 	TurnLoadsOffWhenGridOff
 	__CC2DW
 Interupt_Timer_0_OFFTime
 	Stop_Timer_0
+	HWMul_16x16
 	float_op_less
 Timer_Interrupt_ReadBattery
 	Read_Battery
@@ -161,6 +192,10 @@ Timer_Interrupt_ReadBattery
 				float_normalize_and_pack
 				float_tstr16_r19
 		float_fpadd1
+		float_fpsub1
+	Start_Timer_0_A
+	TurnLoadsOffWhenGridOff
+	float_op_less
 Timer_Interrupt_UpdateScreen
 	Display_On_7Segment_Battery
 		float_fpmul1

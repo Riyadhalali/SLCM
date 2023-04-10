@@ -270,6 +270,7 @@ adcl6_bit
 adcl7
 adcl7_bit
 adcsra
+adderror
 aden
 aden_bit
 adie
@@ -394,10 +395,13 @@ cf_read_sector
 cf_write_byte
 cf_write_init
 cf_write_sector
+changescreen
 character8x7
 check_timers
 checkforset
 checkfortimeractivationinrange
+checkfortimeractivationoutrange
+checksystembatterymode
 checktimeoccuredoff
 checktimeoccuredon
 com00
@@ -422,6 +426,8 @@ correctiontime_state
 cos
 cose3
 cosh
+countsecondsrealtime
+countsecondsrealtimepv_reconnect_t1
 cpha
 cpha_bit
 cpol
@@ -446,6 +452,8 @@ cs21
 cs21_bit
 cs22
 cs22_bit
+cut_time
+cutloadstime
 d
 data
 date
@@ -860,6 +868,7 @@ lcd_out_cp
 ldexp
 ldiv
 lf
+loadsalreadyswitchedoff
 log
 log10
 longinttohex
@@ -895,6 +904,7 @@ memmove
 memset
 min
 mini_battery_voltage
+minuserror
 minutes_lcd_1
 minutes_lcd_2
 minutes_reg_1_off
@@ -1329,6 +1339,7 @@ rs485slave_init
 rs485slave_receive
 rs485slave_send
 rtrim
+runbatteryvoltgaewithouttimer_ison
 runloadsbybass
 runonbatteryvoltagewithouttimer
 runonbatteryvoltagewithouttimer_flag
@@ -1440,6 +1451,7 @@ set_ds1307_month
 set_ds1307_seconds
 set_ds1307_year
 set_status
+setbatteryvoltageerror
 setds1307_time
 setlowbatteryvoltage
 setstartuploadsvoltage
@@ -1819,6 +1831,7 @@ stx_data_ack
 stx_data_nack
 stx_last_data
 system3x5
+systembatterymode
 tan
 tanh
 tccr0
@@ -2135,6 +2148,10 @@ upm0
 upm0_bit
 upm1
 upm1_bit
+upo_mode
+upomode
+ups_mode
+upsmode
 ursel
 ursel_bit
 usbs
@@ -2143,6 +2160,9 @@ v
 vdelay_advanced_ms
 vdelay_ms
 vin_battery
+vin_battery_
+vinbatterydifference
+vinbatteryerror
 voltage
 voltage_int
 voltageprotectorenableflag
@@ -2158,9 +2178,12 @@ wdp2
 wdp2_bit
 wdrf
 wdrf_bit
+wdt_disable
+wdt_enable
 wdtcr
 wdtoe
 wdtoe_bit
+welcomescreen
 wgm00
 wgm00_bit
 wgm01
@@ -2180,6 +2203,7 @@ wgm21_bit
 wordtohex
 wordtostr
 wordtostrwithzeros
+workingmode
 write_date
 write_ds1307
 write_time
