@@ -8,7 +8,7 @@ Notes: bcd_values is the time entered by user from lcd
 unsigned short Data;
 unsigned short reg_1;
 unsigned short reg_2;
-unsigned short Full_Minutes,Full_Hours;
+unsigned short Full_Minutes,Full_Hours,Full_Seconds;
 unsigned short seconds_reg_1_On;
 unsigned short minutes_reg_1_On,hours_reg_1_On;
 unsigned short seconds_reg_2_On;
@@ -73,6 +73,18 @@ reg_2 = reg_2 >> 4;
 Full_Hours=(reg_2<<4)+reg_1;
 Full_Hours=Bcd2Dec(Full_Hours);
 return Full_Hours;
+}
+//----------------------------Read Seconds--------------------------------------
+unsigned short ReadSeconds()
+{
+//-> read hours as complete variable
+Read_DS1307(0x020);    //read seconds "0x00" or read minutes "0x01"
+reg_1 = Data & 0x0F;
+reg_2 = Data & 0xF0;
+reg_2 = reg_2 >> 4;
+Full_Seconds=(reg_2<<4)+reg_1;
+Full_Seconds=Bcd2Dec(Full_Seconds);
+return Full_Seconds;
 }
 //---------------------------Read Date------------------------------------------
 /*unsigned short Read_Day()
