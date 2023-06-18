@@ -184,6 +184,7 @@ void Display_On_7Segment_Hours(unsigned short number);
 void Display_On_7Segment_Minutes(unsigned short number);
 void RunAsTimerMode();
 void Display_OnJustOne_7Segment_Character(char chr1,char chr2, char chr3);
+void LoadingScreen();
 //------------------------------------------------------------------------------
 void Gpio_Init()
 {
@@ -398,7 +399,7 @@ Delay_ms(500);
 while (Set==0)
 {
 //-> Enter First Timer Setting and test for exit button at every screen moving in and out
-Delay_ms(500);
+//Delay_ms(500);
 SetTimerOn_1();
 Delay_ms(500);
 SetTimerOff_1();
@@ -1168,7 +1169,7 @@ char esc=0;
 EEPROM_FactorySettings(1);        // summer time in this version i deleted winter time
 Delay_ms(100);
 EEPROM_Load();    // read the new values from epprom
-Delay_ms(1000);
+Delay_ms(100);
 while(esc!=255)
 {
 esc++;
@@ -1538,6 +1539,11 @@ if ( DisplayBatteryVoltage < 5000)
 {
 Display_On_7Segment_Battery(Vin_Battery); // update display
 }
+/*//------------------------------Loading Screen----------------------------------
+if ( DisplayBatteryVoltage > 5000  && DisplayBatteryVoltage < 5300)
+{
+LoadingScreen();
+}*/
 //--------------------------------Display Time----------------------------------
 
 if ( DisplayBatteryVoltage > 5000  && DisplayBatteryVoltage < 5300)
@@ -1564,7 +1570,7 @@ OCF1A_bit=1;
 void CheckForSet()
 {
 SREG_I_Bit=0; // disable interrupts
-if (Button(&PIND,3,2000,1 ))
+if (Button(&PIND,3,200,1 ))
 {
 SetUpProgram();
 }
@@ -1588,7 +1594,7 @@ void Interrupt_INT1 () iv IVT_ADDR_INT1
 {
 SREG_I_Bit=0; // disable interrupts
 
-if (Button(&PIND,3,1000,1 ))
+if (Button(&PIND,3,200,1 ))
 {
 SetUpProgram();
 }
@@ -1744,10 +1750,7 @@ Grid_indicator=0;
 //-> to indicate out of range
 else if (Timer_isOn==0 && AC_Available==1 && RunOnBatteryVoltageWithoutTimer_Flag==0)
 {
-// flashing fast
-Delay_ms(3000);
-Grid_indicator=1;
-Delay_ms(1000);
+// flashing stop
 Grid_indicator=0;
 
 }
@@ -1779,7 +1782,7 @@ Delay_ms(200);
 while (esc!=255)
 {
 esc++;
-Display_On_7Segment_Character(0xC1,0x79,0xC0);
+Display_On_7Segment_Character(0xC1,0x79,0xA4);
 }
 esc=0;
 Delay_ms(200);
