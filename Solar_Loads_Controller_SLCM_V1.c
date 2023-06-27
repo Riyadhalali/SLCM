@@ -318,6 +318,7 @@ if(AC_Available==0 && UPO_Mode==0 )
 {
 //Delay_ms(300);       // for error to get one seconds approxmiallty
 //SecondsRealTime++;
+
 CountSecondsRealTime=1;
 if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
 {
@@ -329,6 +330,7 @@ if (AC_Available==0 && UPO_Mode==1)
 {
 //Delay_ms(300);
 //SecondsRealTime++;
+
 CountSecondsRealTime=1;
 if(AC_Available==0 && LoadsAlreadySwitchedOFF==0)
 {
@@ -379,7 +381,7 @@ Relay_L_Solar=1;
 //--------------------------Turn Off Loads for Low battery----------------------
 
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled and timer is enabled
-if (Vin_Battery<=Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false )
+if (Vin_Battery<=Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false && RunLoadsByBass==0 )
 {
 SecondsRealTimePv_ReConnect_T1=0;
 CountSecondsRealTimePv_ReConnect_T1=0;
@@ -1090,7 +1092,7 @@ Timer_Counter_For_Grid_Turn_Off++;   // timer for switching load off
 
 if(Timer_Counter_3==30*Cut_time)   // 1 seconds  for timer counter is 30 counts                7812 / 255 count =  1 second
 {
-if(Vin_Battery<=Mini_Battery_Voltage && AC_Available==1)
+if(Vin_Battery<=Mini_Battery_Voltage && AC_Available==1 && RunLoadsByBass==0)
 {
 SecondsRealTime=0;
 Relay_L_Solar=0;
@@ -1183,7 +1185,7 @@ if(Decrement==1 && Increment==0)
 Delay_ms(2000);
 if (Decrement==1 && Increment==0 )
 {
-TurnOffLoadsByPass=1;
+TurnOffLoadsByPass=1;    // this variable if user shutdown loads it will not reactive  until next timer or restart the controller
 RunLoadsByBass=0;
 Relay_L_Solar=0;
 }
@@ -1710,7 +1712,7 @@ Read_Battery();     // read battery using timer interrupt
 if (CountSecondsRealTime==1) SecondsRealTime++;                                     // for counting real time for  grid count
 if (CountSecondsRealTimePv_ReConnect_T1==1) SecondsRealTimePv_ReConnect_T1++; // for counting real time for pv connect
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled and timer is enabled
-if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false)
+if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false && RunLoadsByBass==0)
 {
 SecondsRealTimePv_ReConnect_T1=0;
 CountSecondsRealTimePv_ReConnect_T1=0;
@@ -1782,7 +1784,7 @@ Delay_ms(200);
 while (esc!=255)
 {
 esc++;
-Display_On_7Segment_Character(0xC1,0x79,0xA4);
+Display_On_7Segment_Character(0xC1,0x79,0xB0);       // v1.3e
 }
 esc=0;
 Delay_ms(200);
