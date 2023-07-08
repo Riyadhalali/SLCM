@@ -101,7 +101,7 @@ unsigned int SecondsRealTimePv_ReConnect_T1=0,SecondsRealTimePv_ReConnect_T2=0; 
 unsigned int CountSecondsRealTime=0,CountSecondsRealTimePv_ReConnect_T1=0;
 unsigned int realTimeLoop=0;
 bool RunWithOutBattery=false;
-int const ButtonDelay=300;
+int const ButtonDelay=150;
 char RunLoadsByBass=0;
 char TurnOffLoadsByPass=0; // to turn off for error
 char VoltageProtectorEnableFlag=1;
@@ -573,14 +573,14 @@ Display_On_7Segment_Float(Mini_Battery_Voltage);  // to indicate program 2
 if (Increment==1)
 {
 //Display_On_7Segment_Float(Mini_Battery_Voltage);  // to indicate program 2
-Delay_ms(100);
+Delay_ms(150);
 Mini_Battery_Voltage+=0.1;
 
 }
 if (Decrement==1)
 {
 //Display_On_7Segment_Float(Mini_Battery_Voltage);  // to indicate program 2
-Delay_ms(100);
+Delay_ms(150);
 Mini_Battery_Voltage-=0.1;
 }
 if (Mini_Battery_Voltage>65) Mini_Battery_Voltage=0;
@@ -606,13 +606,13 @@ while (Increment==1 || Decrement==1)
 Display_On_7Segment_Float(StartLoadsVoltage);
 if (Increment==1)
 {
-Delay_ms(100);
+Delay_ms(150);
 StartLoadsVoltage+=0.1;
 //Display_On_7Segment_Float(StartLoadsVoltage);
 }
 if (Decrement==1)
 {
-Delay_ms(100);
+Delay_ms(150);
 StartLoadsVoltage-=0.1;
 //Display_On_7Segment_Float(StartLoadsVoltage);
 }
@@ -675,13 +675,13 @@ while(Increment==1 || Decrement==1)
 Display_On_7Segment_Float(VinBatteryError);
 if(Increment==1)
 {
-Delay_ms(100);
+Delay_ms(150);
 VinBatteryError+=0.1;
 }
 if(Decrement==1)
 {
 
-Delay_ms(100);
+Delay_ms(150);
 VinBatteryError-=0.1;
 }
 if(VinBatteryError > 60.0  ) VinBatteryError=0;
@@ -747,6 +747,7 @@ while (Set==0)
 Display_On_7Segment(set_ds1307_hours);
 while (Increment==1 || Decrement==1 )
 {
+Display_On_7Segment(set_ds1307_hours);
 if (Increment==1)
 {
 delay_ms(ButtonDelay);
@@ -773,6 +774,7 @@ while (Set==0)
 Display_On_7Segment(set_ds1307_minutes);
 while (Increment==1 || Decrement==1)
 {
+Display_On_7Segment(set_ds1307_minutes);
 if (Increment==1)
 {
 delay_ms(ButtonDelay);
@@ -799,6 +801,7 @@ while (Set==0)
 Display_On_7Segment(set_ds1307_seconds);
 while(Increment==1 || Decrement==1)
 {
+Display_On_7Segment(set_ds1307_seconds);
 if (Increment==1)
 {
 delay_ms(ButtonDelay);
@@ -829,7 +832,7 @@ while (Set==0)
 Display_On_7Segment(set_ds1307_day);
 while(Increment==1 || Decrement==1)
 {
-
+Display_On_7Segment(set_ds1307_day);
 if (Increment==1)
 {
 delay_ms(ButtonDelay);
@@ -858,6 +861,7 @@ while (Set==0)
 Display_On_7Segment( set_ds1307_month);
 while(Increment==1 || Decrement==1)
 {
+Display_On_7Segment( set_ds1307_month);
 if (Increment==1)
 {
 delay_ms(ButtonDelay);
@@ -887,6 +891,7 @@ while (Set==0)
 Display_On_7Segment( set_ds1307_year);
 while(Increment==1 || Decrement==1)
 {
+Display_On_7Segment( set_ds1307_year);
 if (Increment==1)
 {
 delay_ms(ButtonDelay);
@@ -951,14 +956,15 @@ Display_On_7Segment(Cut_Time);
 //-> to make sure that the value will never be changed until the user press increment or decrement
 while (Increment == 1 || Decrement==1)
 {
+Display_On_7Segment(Cut_Time);
 if (Increment==1)
 {
-delay_ms(150);
+delay_ms(50);
 Cut_Time++;
 }
 if (Decrement==1)
 {
-delay_ms(150);
+delay_ms(50);
 Cut_Time--;
 }
 } // end while increment
@@ -1525,7 +1531,7 @@ void Timer_2_Init_Screen()
 SREG_I_bit=1;
 TCCR2|= (1<<WGM21);   //choosing compare output mode for timer 2
 TCCR2|=(1<<CS22) | (1 <<CS21 ) | ( 1<< CS20) ;    //choosing 1024 prescalar so we can get 1 ms delay for updating Dipslay
-OCR2=80;
+OCR2=40;
 TIMSK |= (1<<OCIE2);     //enabling interrupt
 TIMSK |=(1<<OCF2);
 }
