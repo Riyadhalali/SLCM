@@ -1531,7 +1531,7 @@ void Timer_2_Init_Screen()
 SREG_I_bit=1;
 TCCR2|= (1<<WGM21);   //choosing compare output mode for timer 2
 TCCR2|=(1<<CS22) | (1 <<CS21 ) | ( 1<< CS20) ;    //choosing 1024 prescalar so we can get 1 ms delay for updating Dipslay
-OCR2=40;
+OCR2=80;
 TIMSK |= (1<<OCIE2);     //enabling interrupt
 TIMSK |=(1<<OCF2);
 }
@@ -1706,8 +1706,8 @@ WGM12_bit=1;
 WGM13_bit=0;    //mode 4 ctc mode OCR1A top
 CS12_bit=1;    //prescalr 1024
 CS10_Bit=1;    //prescalr 1024
-OCR1AH=0x0F;     //writing high bit first
-OCR1AL=0x46;
+OCR1AH=0x14;     //writing high bit first
+OCR1AL=0x58;      // (1000*10-3 * 8 *10^6 ) / 1024 = 7812 but found  every 86.8 is 1 second
 OCIE1A_bit=1;    //Enable Interrupts CTC Mode
 OCF1A_Bit=1;    // clear interrupt flag
 }
