@@ -23,8 +23,12 @@ timer 0    for load off give some time to load
 0x19~0x22 : VinBatteryDifference
 0x23: add error
 0x24 : run as timer with out battery mode
+0x25 : smart mode enable
+0x26 : smart mode number of fails
+0x27 : smart mode watch timer fails
+0x28 : smart mode watch timer block
 
-   */
+*/
    
    
  /*
@@ -40,6 +44,8 @@ P08: upo mode
 P09: Timer mode
 P10: calibrate battery voltage
 P11: set ds time
+p12: smart mode
+p13 : smart mode number of fails
 
 */
 //------------------------------------------------------------------------------
@@ -119,7 +125,18 @@ char addError=0,MinusError=0;
 float Vin_Battery_=0.0;
 unsigned int DisplayBatteryVoltage=0,DisplayHours=0,DisplayMinutes=0;
 unsigned int HoursNow,MinutesNow,SecondsNow;
-
+//---------------------------Smart Mode Variables-------------------------------
+char SmartMode=0;       // for enabling smart mode or disable
+char SmartModeNumberOfStartUps=0; //to save the relay startsup in variable
+char SmartModeNumberOfFails=0; // user can adjust number of starts up
+char SmartModePeriodOfFailsInSeconds=0; //user can select the time to fails occur into it (Seconds)
+char SmartModePeriodOfFailsInMinutes=0; //user can select the time to fails occur into it (Seconds)
+char SmartModePeriodToReStartInSeconds=0; // user can select time to restart loads after the time is elapsed (Minutes)
+char SmartModePeriodToReStartInMinutes=0;
+char SmartModeStartCountTime=0;  // if the loads failed and smart mode is on activate this variable to start counting time
+char SmartModeBlockCountTime=0; // this variable will allow to start blocking time to activate loads after entering block mode
+char BlockLoadsActivation=0; // this
+char SmartModeFailsUserDefined=0,SmartModeWatchTimerUserDefined=0,SmartModeBlockTimerUserDefined=0;
 //-----------------------------------Functions---------------------------------
 void EEPROM_Load();
 void Gpio_Init();
@@ -185,6 +202,13 @@ void Display_On_7Segment_Minutes(unsigned short number);
 void RunAsTimerMode();
 void Display_OnJustOne_7Segment_Character(char chr1,char chr2, char chr3);
 void LoadingScreen();
+void BlockLoads();
+void SmartModeTiming();
+void SmartModeProgram();             // activate or not smart mode
+void SmartModeNumberOfFailsProgram();    // set number of fails program
+void SmartModeWatchTimerFailsProgram();       // the time to watch the loads in failing
+void SmartModeBlockTimeProgram();     // to time to block loads until it starts
+
 //------------------------------------------------------------------------------
 void Gpio_Init()
 {
@@ -233,10 +257,13 @@ UPS_Mode=EEPROM_Read(0x17);
 UPO_Mode=EEPROM_Read(0x18);
 addError=EEPROM_Read(0x23);
 RunWithOutBattery=EEPROM_Read(0x24);  // timer mode with out battery
+SmartMode=EEPROM_Read(0x25); // smart mode
+SmartModeFailsUserDefined=EEPROM_Read(0x26); // smart mode number of fails
+SmartModeWatchTimerUserDefined=EEPROM_Read(0x27);    // smart mode the watch timer fails
+SmartModeBlockTimerUserDefined=EEPROM_Read(0x28);   // smart mode watch timer block
 //**********************************************
 ByPassState=0;   // enable is zero  // delete function to be programmed for rom spac
 Timer_Enable=1;      // delete function to be programmed for rom space
-
 }
 //------------------------------------------------------------------------------
 //-> Saving Float Value to EEPROM
@@ -279,7 +306,7 @@ TurnOffLoadsByPass=0;
 if (AC_Available==1 && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && RunOnBatteryVoltageWithoutTimer_Flag==0)
 {
 Relay_L_Solar=1;
-
+if (SmartMode==1) SmartModeNumberOfStartUps=1;       // for counting that relay is on
 }
 //-> if run with out battery is selected
 if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true && RunOnBatteryVoltageWithoutTimer_Flag==0 )
@@ -347,14 +374,19 @@ Relay_L_Solar=1;
  these function is used for reactiving timers when grid available in the same timer is on or off
 */
 //-> if the  ac is shutdown and timer is steel in the range of being on  so reactive timer 1
-if (AC_Available==1 && Timer_isOn==1 && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==0)
+if (AC_Available==1 && Timer_isOn==1 && Vin_Battery >= StartLoadsVoltage 
+&& RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==0 && BlockLoadsActivation==0)
 {
 
 //SecondsRealTimePv_ReConnect_T1++;
 CountSecondsRealTimePv_ReConnect_T1=1;
 //Delay_ms(200);
-if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)     Relay_L_Solar=1;
+if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)
+{
 
+Relay_L_Solar=1;
+if (SmartMode==1) SmartModeNumberOfStartUps=1;
+}
 }
 //-> FOR BYPASS MODE
 if (AC_Available==1 && Timer_isOn==1  && RunWithOutBattery==true && TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==0 )
@@ -367,7 +399,8 @@ if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1) Relay_L_Solar=1;
 
 }
 //******************Run on Battery Voltage without Timer Mode is ON*************
-if (AC_Available==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==1)
+if (AC_Available==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false 
+&& TurnOffLoadsByPass==0 && RunOnBatteryVoltageWithoutTimer_Flag==1 && BlockLoadsActivation==0)
 {
 //SecondsRealTimePv_ReConnect_T1++;
 CountSecondsRealTimePv_ReConnect_T1=1;
@@ -375,6 +408,8 @@ CountSecondsRealTimePv_ReConnect_T1=1;
 if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)   
 {
 Relay_L_Solar=1;
+if (SmartMode==1) SmartModeNumberOfStartUps=1;
+
 }
 }
 
@@ -424,7 +459,16 @@ RunAsTimerMode();
 Delay_ms(500);
 SetBatteryVoltageError();
 Delay_ms(500);
-SetDS1307_Time();   // program 10
+SetDS1307_Time();   // program 11
+Delay_ms(500);
+SmartModeProgram();    // program 12
+Delay_ms(500);
+SmartModeNumberOfFailsProgram();      // program 13
+Delay_ms(500);
+SmartModeWatchTimerFailsProgram();    // program 14
+Delay_ms(500);
+SmartModeBlockTimeProgram();          // program 15
+Delay_ms(500);
 break;   // to break the while
 } // end while
 }
@@ -675,25 +719,25 @@ while(Increment==1 || Decrement==1)
 Display_On_7Segment_Float(VinBatteryError);
 if(Increment==1)
 {
-Delay_ms(150);
+Delay_ms(100);
 VinBatteryError+=0.1;
 }
 if(Decrement==1)
 {
 
-Delay_ms(150);
+Delay_ms(100);
 VinBatteryError-=0.1;
 }
 if(VinBatteryError > 60.0  ) VinBatteryError=0;
 if (VinBatteryError<0) VinBatteryError=0;
 if (VinBatteryError>Vin_Battery_) addError=1;    // add
 if (VinBatteryError<Vin_Battery_) addError=0;    // minus
+} // end  while increment decrement
+} // end while main while set
+//-> i moved the operation to here because of errors
 VinBatteryDifference=fabs(VinBatteryError-Vin_Battery_);
 EEPROM_Write(0x23,addError);
 StoreBytesIntoEEprom(0x19,(unsigned short *)&VinBatteryDifference,4);   // save float number to eeprom
-} // end  while increment decrement
-} // end while main while set
-
 }
 //----------------------run as timer without battery protection-----------------
 void RunAsTimerMode()
@@ -1039,6 +1083,131 @@ UPO_Mode=0;
 } // end first while
 EEPROM_Write(0x18,UPO_Mode); // if zero timer is on and if 1 tiemr is off
 }
+//---------------------------SmartMode------------------------------------------
+//-> smart mode activation
+void SmartModeProgram()
+{
+Delay_ms(500);
+while(Set==0)
+{
+Display_On_7Segment_Character(0x8C,0xF9,0xA4);        // program 12
+}
+Delay_ms(500);
+while (Set==0)
+{
+if(SmartMode==0)          Display_On_7Segment_Character(0xC0,0x8E,0x8E);        // mode is off
+if(SmartMode==1)          Display_On_7Segment_Character(0xC0,0xC8,0xC8);       // mode is on
+//-> to make sure that the value will never be changed until the user press increment or decrement
+while (Increment == 1 || Decrement==1)
+{
+if (Increment==1)
+{
+delay_ms(ButtonDelay);
+SmartMode=1;
+}
+if (Decrement==1)
+{
+delay_ms(ButtonDelay);
+SmartMode=0;
+}
+} // end while increment
+} // end first while
+EEPROM_Write(0x25,SmartMode); // if zero timer is on and if 1 tiemr is off
+}
+//------------------------------Smart Mode Number of fails----------------------
+//-> smart mode activation
+void SmartModeNumberOfFailsProgram()
+{
+Delay_ms(500);
+while(Set==0)
+{
+Display_On_7Segment_Character(0x8C,0xF9,0xB0);        // program 13
+}
+Delay_ms(500);
+while (Set==0)
+{
+Display_On_7Segment(SmartModeFailsUserDefined);
+//-> to make sure that the value will never be changed until the user press increment or decrement
+while (Increment == 1 || Decrement==1)
+{
+Display_On_7Segment(SmartModeFailsUserDefined);
+if (Increment==1)
+{
+delay_ms(ButtonDelay);
+SmartModeFailsUserDefined++;
+
+}
+if (Decrement==1)
+{
+delay_ms(ButtonDelay);
+SmartModeFailsUserDefined--;
+}
+} // end while increment
+} // end first while
+EEPROM_Write(0x26,SmartModeFailsUserDefined); // if zero timer is on and if 1 tiemr is off
+}
+//--------------------------Smart Mode Watch Timer fails------------------------
+void SmartModeWatchTimerFailsProgram()
+{
+Delay_ms(500);
+while(Set==0)
+{
+Display_On_7Segment_Character(0x8C,0xF9,0x99);        // program 14
+}
+Delay_ms(500);
+while (Set==0)
+{
+Display_On_7Segment(SmartModeWatchTimerUserDefined);
+//-> to make sure that the value will never be changed until the user press increment or decrement
+while (Increment == 1 || Decrement==1)
+{
+Display_On_7Segment(SmartModeWatchTimerUserDefined);
+if (Increment==1)
+{
+delay_ms(ButtonDelay);
+SmartModeWatchTimerUserDefined++;
+
+}
+if (Decrement==1)
+{
+delay_ms(ButtonDelay);
+SmartModeWatchTimerUserDefined--;
+}
+} // end while increment
+} // end first while
+EEPROM_Write(0x27,SmartModeWatchTimerUserDefined); // watch timer
+}
+//-----------------------------Smart Mode Block Timer---------------------------
+void SmartModeBlockTimeProgram()
+{
+Delay_ms(500);
+while(Set==0)
+{
+Display_On_7Segment_Character(0x8C,0xF9,0x92);        // program 15
+}
+Delay_ms(500);
+while (Set==0)
+{
+Display_On_7Segment(SmartModeBlockTimerUserDefined);
+//-> to make sure that the value will never be changed until the user press increment or decrement
+while (Increment == 1 || Decrement==1)
+{
+Display_On_7Segment(SmartModeBlockTimerUserDefined);
+if (Increment==1)
+{
+delay_ms(ButtonDelay);
+SmartModeBlockTimerUserDefined++;
+
+}
+if (Decrement==1)
+{
+delay_ms(ButtonDelay);
+SmartModeBlockTimerUserDefined--;
+}
+} // end while increment
+} // end first while
+EEPROM_Write(0x28,SmartModeBlockTimerUserDefined); // watch timer
+}
  //----------------------------Screen 1-----------------------------------------
 void Screen_1()
 {
@@ -1100,8 +1269,19 @@ if(Timer_Counter_3==30*Cut_time)   // 1 seconds  for timer counter is 30 counts 
 {
 if(Vin_Battery<=Mini_Battery_Voltage && AC_Available==1 && RunLoadsByBass==0)
 {
+if(SmartMode==1 && SmartModeNumberOfStartUps==1)
+{
+// start time to count
+SmartModeStartCountTime=1;
+// change number of fails
+SmartModeNumberOfFails++;
+//-> block mode
+BlockLoads();
+}
+
 SecondsRealTime=0;
 Relay_L_Solar=0;
+SmartModeNumberOfStartUps=0;  // zero the variable
 }
 Timer_Counter_3=0;
 Stop_Timer_0();
@@ -1153,6 +1333,10 @@ EEPROM_Write(0x17,0);    // ups mode is off
 EEPROM_Write(0x18,0);     //upo mode
 EEPROM_Write(0x23,1);     //add error is on so add error to vin battery
 EEPROM_Write(0x24,0);     //run as timer without battery protection
+EEPROM_Write(0x25,0);     //smart mode
+EEPROM_Write(0x26,3);     //smar  t mode  number of fails
+EEPROM_Write(0x27,12);     // smart mode the watch timer fails
+EEPROM_Write(0x28,15);     // smart mode watch timer block
 //--------------------------------
 StoreBytesIntoEEprom(0x04,(unsigned short *)&Mini_Battery_Voltage,4);   // save float number to eeprom
 StoreBytesIntoEEprom(0x08,(unsigned short *)&StartLoadsVoltage,4);
@@ -1538,6 +1722,7 @@ TIMSK |=(1<<OCF2);
 
 void Timer_Interrupt_UpdateScreen() iv IVT_ADDR_TIMER2_COMP
 {
+
 //changeScreen++;
 if (RunOnBatteryVoltageWithoutTimer_Flag==0)
 {
@@ -1547,11 +1732,6 @@ if ( DisplayBatteryVoltage < 5000)
 {
 Display_On_7Segment_Battery(Vin_Battery); // update display
 }
-/*//------------------------------Loading Screen----------------------------------
-if ( DisplayBatteryVoltage > 5000  && DisplayBatteryVoltage < 5300)
-{
-LoadingScreen();
-}*/
 //--------------------------------Display Time----------------------------------
 
 if ( DisplayBatteryVoltage > 5000  && DisplayBatteryVoltage < 5300)
@@ -1573,6 +1753,7 @@ Display_On_7Segment_Battery(Vin_Battery); // update display
 }
 //------------------------------------------------------------------------------
 OCF1A_bit=1;
+
 }
 //------------------------------------------------------------------------------
 void CheckForSet()
@@ -1714,6 +1895,8 @@ OCF1A_Bit=1;    // clear interrupt flag
 void Timer_Interrupt_ReadBattery() iv IVT_ADDR_TIMER1_COMPA
 {
 Read_Battery();     // read battery using timer interrupt
+//-> SMart Mode timing
+SmartModeTiming();
 
 if (CountSecondsRealTime==1) SecondsRealTime++;                                     // for counting real time for  grid count
 if (CountSecondsRealTimePv_ReConnect_T1==1) SecondsRealTimePv_ReConnect_T1++; // for counting real time for pv connect
@@ -1790,7 +1973,7 @@ Delay_ms(200);
 while (esc!=255)
 {
 esc++;
-Display_On_7Segment_Character(0xC1,0x79,0xB0);       // v1.3e
+Display_On_7Segment_Character(0xC1,0x79,0x99);       // v1.4
 }
 esc=0;
 Delay_ms(200);
@@ -1908,6 +2091,68 @@ Display_OnJustOne_7Segment_Character(0xDF,0x00,0x00);
  timeout=0;
  Delay_ms(1000);
 }
+
+//---------------------------------Block Loads----------------------------------
+//-> this function is used to block loads to start again in smart mode
+void BlockLoads()
+{
+// if number of fails bigger than set point must enter block mode
+if (SmartModeNumberOfFails>= SmartModeFailsUserDefined && SmartModePeriodOfFailsInMinutes<SmartModeWatchTimerUserDefined
+&& SmartModeNumberOfStartUps==1)
+{
+BlockLoadsActivation=1; // block loads so don't start until time occured
+}
+}
+//---------------------------Timing in Smart Mode-------------------------------
+void SmartModeTiming()
+{
+if (SmartModeStartCountTime==1) 
+{
+SmartModePeriodOfFailsInSeconds++;
+//-> convert seconds to minutes
+if (SmartModePeriodOfFailsInSeconds==59 )
+{
+ SmartModePeriodOfFailsInMinutes++ ;  SmartModePeriodOfFailsInSeconds = 0 ;
+ }
+}
+//------------------------------------------------------------------------------
+// stage 1 is to watch fails timer if time is elapsed end this stage or if the fails number
+if (SmartModePeriodOfFailsInMinutes==SmartModeWatchTimerUserDefined || SmartModeNumberOfFails>=SmartModeFailsUserDefined)
+{
+SmartModePeriodOfFailsInMinutes=0;     // to zero
+SmartModePeriodOfFailsInSeconds=0; // to zero
+SmartModeStartCountTime=0;
+
+//-> time is elapsed for watching the fails times so make this variable zero
+SmartModeNumberOfFails=0;
+SmartModeNumberOfStartUps=0;
+//-> start next stage and this is the period to reactive
+SmartModeBlockCountTime=1 ;
+}
+//------------------------------------------------------------------------------
+// stage 2 watching
+if (SmartModeBlockCountTime==1) 
+{
+SmartModePeriodToReStartInSeconds++;
+
+//-> convert seconds to minutes
+if (SmartModePeriodToReStartInSeconds==59 )
+{
+SmartModePeriodToReStartInMinutes++ ;
+SmartModePeriodToReStartInSeconds=0 ;     // make seconds zero to restart counting
+}
+}
+//------------------------------------------------------------------------------
+if (SmartModePeriodToReStartInMinutes==SmartModeBlockTimerUserDefined)
+{
+BlockLoadsActivation=0;
+SmartModeBlockCountTime=0 ;
+SmartModePeriodToReStartInSeconds=0;
+SmartModePeriodToReStartInMinutes=0;
+SmartModeNumberOfFails=0;
+SmartModeNumberOfStartUps=0;
+}
+}  //end function
 //******************************************************************************
 void main() {
 Config();
