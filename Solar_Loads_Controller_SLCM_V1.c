@@ -113,7 +113,7 @@ char TurnOffLoadsByPass=0; // to turn off for error
 char VoltageProtectorEnableFlag=1;
 char RunOnBatteryVoltageWithoutTimer_Flag=0;
 char RunBatteryVoltgaeWithoutTimer_isOn=0;                // battery voltage is good
-char UPS_Mode=0;                                         // this mode when grid is available and then grid off  it will switch the loads off and then other conditions reload this mode is for run on battery voltage mode   («бёЎЏ «бг»«‘— Џдѕ «дёЎ«Џ «бяе—»«Ѕ жнЁнѕ е–« «бж÷Џ Ён Ќ«б«  «бЏгб Џбм ЁёЎ ћеѕ »Ў«—н…(
+char UPS_Mode=0;                                         // this mode when grid is available and then grid off  it will switch the loads off and then other conditions reload this mode is for run on battery voltage mode   (пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљ(
 char UPO_Mode=0;                                        // this mode is when grid is available turn loads off directly
 unsigned int Cut_Time=0;  // time for cutting loads off
 char LoadsAlreadySwitchedOFF=0;
@@ -696,7 +696,7 @@ if(Decrement==1)
 Delay_ms(50);
 startupTIme_1--;
 }
-if(startupTIme_1 > 600  ) startupTIme_1=0;
+if(startupTIme_1 > 900  ) startupTIme_1=0;
 if (startupTIme_1<0) startupTIme_1=0;
 } // end  while increment decrement
 } // end while main while set
@@ -709,6 +709,7 @@ while(Set==0)
 {
 Display_On_7Segment_Character(0x8C,0xF9,0xC0);  // program 10
 }
+Read_Battery();
 Delay_ms(500);
 VinBatteryError=Vin_Battery;
 while(Set==0)
@@ -728,9 +729,9 @@ if(Decrement==1)
 Delay_ms(100);
 VinBatteryError-=0.1;
 }
-if(VinBatteryError > 60.0  ) VinBatteryError=0;
+if(VinBatteryError > 70.0  ) VinBatteryError=0;
 if (VinBatteryError<0) VinBatteryError=0;
-if (VinBatteryError>Vin_Battery_) addError=1;    // add
+if (VinBatteryError>=Vin_Battery_) addError=1;    // add
 if (VinBatteryError<Vin_Battery_) addError=0;    // minus
 } // end  while increment decrement
 } // end while main while set
@@ -834,8 +835,9 @@ if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 } // end while decrement or increment
 } // end first while
 //*******************************Seconds****************************************
+Write_Time(Dec2Bcd(0),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
 Delay_ms(500);
-while(Set==0)
+/*while(Set==0)
 {
 Display_On_7Segment_Character(0x92,0x86,0xC6);
 }
@@ -862,7 +864,7 @@ if (set_ds1307_seconds<0) set_ds1307_seconds=0;
 //-> to force user to change the time when the last seconds options is changing it must be saved
 Write_Time(Dec2Bcd(set_ds1307_seconds),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
 } // end while decrement or increment
-} // end first while
+} // end first while*/
 //---------------------------------Set Date-------------------------------------
 set_ds1307_day=ReadDate(0x04);  // read day
 Delay_ms(500);
@@ -1481,7 +1483,7 @@ void TurnLoadsOffWhenGridOff()
 {
 //-> working on timer mode
 /*
- жё  » дёЎе «бяе—»«Ѕ б«“г нЁ’б «бЌгб г»«‘—… ”ж«Ѕ »ж÷Џ «б «нг— ”ж«Ѕ
+ пњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ
 
 */
 if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageWithoutTimer_Flag==0  )
@@ -1495,10 +1497,10 @@ LoadsAlreadySwitchedOFF=0;
 }
 /*
 UPO Mode:
-жё  » ћн «бяе—»«Ѕ » г Ё’б «бЌгб Ћг «Џ«ѕ…  ‘џнбе ж»«б «бн Џдѕ «дёЎ«Џ «бяе—»«Ѕ б«“г «бг Ќжб «бѕ«б Џбм  ‘џнб «бЌгб няжд ’Ё— я—г«б
-жё   —ћЏ  ћн «бяе—»«Ѕ н—ћЏ нЁ’б «бЌгб жн—ћЏ н‘ џб
-ж»«б «бн Џдѕ яб Џгбн… ћн… ббяе—»«Ѕ »нЁ’б «бЌгб жжё  » дёЎЏ » г  ’Ён— «бг Ќжб ж»«б «бн ‘—жЎ «бѕќжб «дж няжд «бг Ќжб ’«— ж«Ќѕ нЏдн «бЌгб «‘ џб
-ж» г  ЁЏнб «бќ—ћ  »«б”Ў— —ёг  290
+пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ
+пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ
+пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ
+пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ  пњљпњљпњљпњљпњљпњљ пњљпњљпњљ  290
 */
 if(AC_Available==1 &&  RunLoadsByBass==0 && UPO_Mode==1 && LoadsAlreadySwitchedOFF==1)
 {
@@ -1845,8 +1847,8 @@ LoadsAlreadySwitchedOFF=0;
 //@note: i can not use this line in turnoffloads grid main function
 /*
 ups mode:
-жё  » ћн «бяе—»«Ѕ ж» ёЎЏ » г Ё’б «бЌгб г»«‘—… ж«Џ«ѕ…  ‘џнбе »‘—жЎ «ќ—м жбяд г«Ёнд« дЌЎж »«бЌбё… «б—∆н”н… б«дж «бЌгб еня — н’б Ё«’б »ндг« ежд —Ќ н г  я—«— «б‘—Ў г—… ж«Ќѕ… ЁёЎ
-жен Џдѕ «дёЎ«Џ «бяе—»«Ѕ жЁн Ќ«б г« бЌёд« д‘жЁ ёЎЏ… «бяе—»«Ѕ » г Ё’б «бЌгб гд ‘—жЎ «дќЁ«÷ «б»Ў«—н…
+пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљ пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ
+пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ
 */
 if(AC_Available==1 && RunLoadsByBass==0 && RunOnBatteryVoltageWithoutTimer_Flag==1 && UPS_Mode==1  )
 {
@@ -1859,10 +1861,10 @@ Relay_L_Solar=0;
 }
 /*
 UPO Mode:
-жё  » ћн «бяе—»«Ѕ » г Ё’б «бЌгб Ћг «Џ«ѕ…  ‘џнбе ж»«б «бн Џдѕ «дёЎ«Џ «бяе—»«Ѕ б«“г «бг Ќжб «бѕ«б Џбм  ‘џнб «бЌгб няжд ’Ё— я—г«б
-жё   —ћЏ  ћн «бяе—»«Ѕ н—ћЏ нЁ’б «бЌгб жн—ћЏ н‘ џб
-ж»«б «бн Џдѕ яб Џг    бн… ћн… ббяе—»«Ѕ »нЁ’б «бЌгб жжё  » дёЎЏ » г  ’Ён— «бг Ќжб ж»«б «бн ‘—жЎ «бѕќжб «дж няжд «бг Ќжб ’«— ж«Ќѕ нЏдн «бЌгб «‘ џб
-ж» г  ЁЏнб «бќ—ћ  »«б”Ў— —ёг  290
+пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ
+пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ
+пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљ пњљпњљ    пњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљпњљпњљ пњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ
+пњљпњљпњљпњљ пњљпњљпњљпњљпњљ пњљпњљпњљпњљпњљ  пњљпњљпњљпњљпњљпњљ пњљпњљпњљ  290
 */
 if(AC_Available==1 &&  RunLoadsByBass==0  && UPO_Mode==1 && LoadsAlreadySwitchedOFF==1)
 {
@@ -1973,7 +1975,7 @@ Delay_ms(200);
 while (esc!=255)
 {
 esc++;
-Display_On_7Segment_Character(0xC1,0x79,0x99);       // v1.4
+Display_On_7Segment_Character(0xC1,0x79,0x92);       // v1.5
 }
 esc=0;
 Delay_ms(200);
