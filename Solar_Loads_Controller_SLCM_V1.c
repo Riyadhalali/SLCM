@@ -186,7 +186,7 @@ void RunTimersNow();
 void TurnACLoadsByPassOn();
 void RunTimersNowCheck();
 void Write_Date(); // to set date of ds1307
-void Display_On_7Segment(char number);
+void Display_On_7Segment(unsigned int number);
 void Display_On_7Segment_Float(float number);
 void Display_On_7Segment_Battery(float num);
 void Display_On_7Segment_Character(char chr1,char chr2,char chr3);
@@ -697,7 +697,7 @@ Delay_ms(50);
 startupTIme_1--;
 }
 if(startupTIme_1 > 900  ) startupTIme_1=0;
-if (startupTIme_1<0) startupTIme_1=0;
+                 if (startupTIme_1<0) startupTIme_1=0;
 } // end  while increment decrement
 } // end while main while set
 StoreBytesIntoEEprom(0x12,(unsigned short *)&startupTIme_1,2);   // save float number to eeprom
@@ -1015,7 +1015,7 @@ Cut_Time--;
 }
 } // end while increment
 } // end first while
-StoreBytesIntoEEprom(0x15,(unsigned short *)&Cut_Time,4);   // save float number to eeprom
+StoreBytesIntoEEprom(0x15,(unsigned short *)&Cut_Time,2);   // save float number to eeprom
 }
 //------------------------------UPS Mode----------------------------------------
 /*
@@ -1547,7 +1547,7 @@ Display_1=0;
 }
 }
 //--------------------------------Display---------------------------------------
-void Display_On_7Segment(unsigned short number)
+void Display_On_7Segment(unsigned int number)
 {
 number=number;
 a=number%10;    //3th digit is saved here
@@ -1975,7 +1975,7 @@ Delay_ms(200);
 while (esc!=255)
 {
 esc++;
-Display_On_7Segment_Character(0xC1,0x79,0x92);       // v1.5
+Display_On_7Segment_Character(0xC1,0x79,0x82);       // v1.6
 }
 esc=0;
 Delay_ms(200);
