@@ -52,6 +52,7 @@ p13 : smart mode number of fails
 #include "stdint.h"
 #include <stdbool.h>
 #include "ds1307.h"
+#include <math.h>
 //--------------------------------Defines---------------------------------------
 #define Relay_L_Solar PORTA.B3
 #define Set PIND.B3
@@ -208,7 +209,7 @@ void SmartModeProgram();             // activate or not smart mode
 void SmartModeNumberOfFailsProgram();    // set number of fails program
 void SmartModeWatchTimerFailsProgram();       // the time to watch the loads in failing
 void SmartModeBlockTimeProgram();     // to time to block loads until it starts
-
+void CheckForParams();
 //------------------------------------------------------------------------------
 void Gpio_Init()
 {
@@ -431,10 +432,12 @@ Start_Timer_0_A();         // give some time for battery voltage
 void SetUpProgram()
 {  
 Delay_ms(500);
+
 //---------------------------------Enter Programs ------------------------------
 //-> enter setup mode and don't exit it until the user hit set button
 while (Set==0)
 {
+Grid_indicator=0; // turn off led
 //-> Enter First Timer Setting and test for exit button at every screen moving in and out
 //Delay_ms(500);
 SetTimerOn_1();
@@ -697,7 +700,7 @@ Delay_ms(50);
 startupTIme_1--;
 }
 if(startupTIme_1 > 900  ) startupTIme_1=0;
-                 if (startupTIme_1<0) startupTIme_1=0;
+if (startupTIme_1<0) startupTIme_1=0;
 } // end  while increment decrement
 } // end while main while set
 StoreBytesIntoEEprom(0x12,(unsigned short *)&startupTIme_1,2);   // save float number to eeprom
@@ -1013,6 +1016,8 @@ if (Decrement==1)
 delay_ms(50);
 Cut_Time--;
 }
+if(Cut_Time > 240 )    Cut_Time=0;
+if (Cut_Time < 0 ) Cut_Time=0;
 } // end while increment
 } // end first while
 StoreBytesIntoEEprom(0x15,(unsigned short *)&Cut_Time,2);   // save float number to eeprom
@@ -1144,6 +1149,9 @@ if (Decrement==1)
 delay_ms(ButtonDelay);
 SmartModeFailsUserDefined--;
 }
+if (SmartModeFailsUserDefined > 10) SmartModeFailsUserDefined=0;
+if (SmartModeFailsUserDefined < 0)   SmartModeFailsUserDefined=0;
+
 } // end while increment
 } // end first while
 EEPROM_Write(0x26,SmartModeFailsUserDefined); // if zero timer is on and if 1 tiemr is off
@@ -1175,6 +1183,8 @@ if (Decrement==1)
 delay_ms(ButtonDelay);
 SmartModeWatchTimerUserDefined--;
 }
+if (SmartModeWatchTimerUserDefined > 60 )   SmartModeWatchTimerUserDefined=0 ;
+if (SmartModeWatchTimerUserDefined < 0 )    SmartModeWatchTimerUserDefined=0;
 } // end while increment
 } // end first while
 EEPROM_Write(0x27,SmartModeWatchTimerUserDefined); // watch timer
@@ -1206,6 +1216,8 @@ if (Decrement==1)
 delay_ms(ButtonDelay);
 SmartModeBlockTimerUserDefined--;
 }
+if (SmartModeBlockTimerUserDefined  > 60 ) SmartModeBlockTimerUserDefined=0;
+if (SmartModeBlockTimerUserDefined < 0 )   SmartModeBlockTimerUserDefined=0;
 } // end while increment
 } // end first while
 EEPROM_Write(0x28,SmartModeBlockTimerUserDefined); // watch timer
@@ -1238,6 +1250,8 @@ Battery_Voltage=(ADC_Value *5.0)/1024.0;
 ///Vin_Battery=((10.5/0.5)*Battery_Voltage); // 0.3 volt error from reading
 for ( i=0; i<10 ; i++)
 {
+ADC_Value=ADC_Read(1);
+Battery_Voltage=(ADC_Value *5.0)/1024.0;
 Battery[i]=((10.5/0.5)*Battery_Voltage);
 //delay_ms(1);
 sum+=Battery[i];
@@ -1306,18 +1320,18 @@ if(period==1) // summer  timer
 {
 if(SystemBatteryMode==12)
 {
-Mini_Battery_Voltage=12.5;
-StartLoadsVoltage=13.5;
+Mini_Battery_Voltage=12.0;
+StartLoadsVoltage=13.0;
 }
 if(SystemBatteryMode==24)
 {
-Mini_Battery_Voltage=25.0;
-StartLoadsVoltage=27.0;
+Mini_Battery_Voltage=24.5;
+StartLoadsVoltage=25.5;
 }
 if(SystemBatteryMode==48)
 {
 Mini_Battery_Voltage=50;
-StartLoadsVoltage=54.0;
+StartLoadsVoltage=52.0;
 }
 
 startupTIme_1 =180;
@@ -1955,7 +1969,7 @@ Grid_indicator=1;
 //********************************System Battery Mode 12V/24/48------------------
 void CheckSystemBatteryMode() 
 {
-if      (Vin_Battery>= 35 && Vin_Battery <= 60) SystemBatteryMode=48;
+if      (Vin_Battery>= 35 && Vin_Battery <= 70) SystemBatteryMode=48;
 else if (Vin_Battery>=18 && Vin_Battery <=32) SystemBatteryMode=24;
 else if (Vin_Battery >=1 && Vin_Battery<= 16 ) SystemBatteryMode=12;
 else SystemBatteryMode=24; // take it as default
@@ -1975,7 +1989,7 @@ Delay_ms(200);
 while (esc!=255)
 {
 esc++;
-Display_On_7Segment_Character(0xC1,0x79,0x82);       // v1.6
+Display_On_7Segment_Character(0xC1,0x79,0xF8);       // v1.7
 }
 esc=0;
 Delay_ms(200);
@@ -2155,11 +2169,162 @@ SmartModeNumberOfFails=0;
 SmartModeNumberOfStartUps=0;
 }
 }  //end function
+//-----------------------------Check For Params---------------------------------
+void CheckForParams()
+{
+//----------------Timer 1 ----------------
+if (hours_lcd_1< 0  || hours_lcd_1 > 23)
+{
+hours_lcd_1=8;
+EEPROM_write(0x00,hours_lcd_1);
+EEPROM_Load();
+}
+if (minutes_lcd_1< 0  || minutes_lcd_1 > 59)
+{
+minutes_lcd_1=0;
+EEPROM_write(0x01,minutes_lcd_1);
+EEPROM_Load();
+}
+if (hours_lcd_2< 0  || hours_lcd_2 > 23)
+{
+hours_lcd_2=18;
+EEPROM_write(0x02,hours_lcd_2);
+EEPROM_Load();
+}
+if (minutes_lcd_2< 0  || minutes_lcd_2 > 59)
+{
+minutes_lcd_2=0;
+EEPROM_write(0x03,minutes_lcd_2);
+EEPROM_Load();
+}
+//---------------------------LOW Voltage------------------------------
+if (Mini_Battery_Voltage< 0  ||  Mini_Battery_Voltage > 65.0 )
+{
+if (SystemBatteryMode==12) Mini_Battery_Voltage=12.0;
+if (SystemBatteryMode==24) Mini_Battery_Voltage=24.5;
+if (SystemBatteryMode==48) Mini_Battery_Voltage=49.0;
+StoreBytesIntoEEprom(0x04,(unsigned short *)&Mini_Battery_Voltage,4);   // save float number to eeprom
+EEPROM_Load();
+ReadBytesFromEEprom(0x04,(unsigned short *)&Mini_Battery_Voltage,4);       // Loads will cut of this voltgage
+ReadBytesFromEEprom(0x08,(unsigned short *)&StartLoadsVoltage,4);         //Loads will start based on this voltage
+ReadBytesFromEEprom(0x12,(unsigned short *)&startupTIme_1,2);
+ReadBytesFromEEprom(0x15,(unsigned short *)&Cut_Time,2);
+ReadBytesFromEEprom(0x19,(unsigned short *)&VinBatteryDifference,4);         //Loads will start based on this voltage
+}
+//--------------------------Start Loads Voltage------------------------
+if (StartLoadsVoltage< 0 ||  StartLoadsVoltage > 65.0  )
+{
+if (SystemBatteryMode==12) StartLoadsVoltage=13.0;
+if (SystemBatteryMode==24) StartLoadsVoltage=25.5;
+if (SystemBatteryMode==48) StartLoadsVoltage=51.0;
+StoreBytesIntoEEprom(0x08,(unsigned short *)&StartLoadsVoltage,4);
+EEPROM_Load();
+ReadBytesFromEEprom(0x04,(unsigned short *)&Mini_Battery_Voltage,4);       // Loads will cut of this voltgage
+ReadBytesFromEEprom(0x08,(unsigned short *)&StartLoadsVoltage,4);         //Loads will start based on this voltage
+ReadBytesFromEEprom(0x12,(unsigned short *)&startupTIme_1,2);
+ReadBytesFromEEprom(0x15,(unsigned short *)&Cut_Time,2);
+ReadBytesFromEEprom(0x19,(unsigned short *)&VinBatteryDifference,4);         //Loads will start based on this voltage
+}
+//-------------------------Startup Timers--------------------------------
+if (startupTIme_1< 0  || startupTIme_1 > 900)
+{
+startupTIme_1=180;
+StoreBytesIntoEEprom(0x12,(unsigned short *)&startupTIme_1,2);
+EEPROM_Load();
+}
+
+//------------------------Cut Time------------------------------------------
+if (Cut_Time < 0 || Cut_Time > 240 )
+{
+Cut_Time=15;
+StoreBytesIntoEEprom(0x15,(unsigned short *)&Cut_Time,2);   // save float number to eeprom
+EEPROM_Load();
+}
+//----------------------Run On Battery Voltage Mode-------------------------
+if (RunOnBatteryVoltageWithoutTimer_Flag < 0 || RunOnBatteryVoltageWithoutTimer_Flag > 1 )
+{
+  RunOnBatteryVoltageWithoutTimer_Flag=0;
+  EEPROM_write(0x14,RunOnBatteryVoltageWithoutTimer_Flag);
+  EEPROM_Load();
+}
+//----------------------------UPS Mode------------------------------------
+if (UPS_Mode < 0 || UPS_Mode > 1 )
+{
+  UPS_Mode=0;
+  EEPROM_Write(0x17,UPS_Mode);
+  EEPROM_Load();
+}
+//-----------------------------UPO Mode----------------------------
+if (UPO_Mode < 0 || UPO_Mode > 1 )
+{
+  UPO_Mode=0;
+  EEPROM_Write(0x18,UPO_Mode);
+  EEPROM_Load();
+}
+//----------------------------Run as Timer--------------------------------------
+if(RunWithOutBattery < 0 ||  RunWithOutBattery > 1)
+{
+RunWithOutBattery=0;
+EEPROM_Write(0x24,RunWithOutBattery); // if zero timer is on and if 1 tiemr is off
+EEPROM_Load();
+}
+//--------------------------Battery Calibration---------------------------------
+if (VinBatteryDifference<0 || VinBatteryDifference>=70 )
+{
+  VinBatteryDifference=0;
+  StoreBytesIntoEEprom(0x19,(unsigned short *)&VinBatteryDifference,4);   // save float number to eeprom
+  EEPROM_Load();
+}
+
+ if (addError<0 || addError>1 )
+{
+  addError=1;
+  EEPROM_Write(0x23,1);     //add error is on so add error to vin battery
+  EEPROM_Load();
+}
+///***************************BLOCK MODE****************************************
+if(SmartMode<0 ||  SmartMode > 1 )
+{
+SmartMode=0;
+EEPROM_Write(0x25,SmartMode); // if zero timer is on and if 1 tiemr is off
+EEPROM_Load();
+}
+
+if(SmartModeFailsUserDefined  < 0 ||   SmartModeFailsUserDefined> 60 )
+{
+SmartModeFailsUserDefined=3 ;
+EEPROM_Write(0x26,SmartModeFailsUserDefined); // if zero timer is on and if 1 tiemr is off
+EEPROM_Load();
+}
+
+if(SmartModeWatchTimerUserDefined  < 0 ||   SmartModeWatchTimerUserDefined> 60 )
+{
+SmartModeWatchTimerUserDefined=12 ;
+EEPROM_Write(0x27,SmartModeWatchTimerUserDefined); // watch timer
+EEPROM_Load();
+}
+
+if(SmartModeBlockTimerUserDefined   < 0 ||   SmartModeBlockTimerUserDefined  > 60 )
+{
+SmartModeBlockTimerUserDefined =15 ;
+EEPROM_Write(0x28,SmartModeBlockTimerUserDefined); // watch timer
+EEPROM_Load();
+}
+
+
+//---------------------------LOAD EEPROM----------------------------------------
+ReadBytesFromEEprom(0x04,(unsigned short *)&Mini_Battery_Voltage,4);            // Loads will cut of this voltgage
+ReadBytesFromEEprom(0x08,(unsigned short *)&StartLoadsVoltage,4);               //Loads will start based on this voltage
+ReadBytesFromEEprom(0x12,(unsigned short *)&startupTIme_1,2);
+ReadBytesFromEEprom(0x15,(unsigned short *)&Cut_Time,2);
+ReadBytesFromEEprom(0x19,(unsigned short *)&VinBatteryDifference,4);
+} // end function
 //******************************************************************************
 void main() {
 Config();
 EEPROM_Load(); // load params programs
 ADCBattery(); // adc configuartion for adc
+Read_Battery();
 TWI_Config();
 Config_Interrupts();
 ReadBytesFromEEprom(0x04,(unsigned short *)&Mini_Battery_Voltage,4);       // Loads will cut of this voltgage
@@ -2173,18 +2338,19 @@ Timer_2_Init_Screen();  // this timer is for update screen
 Timer_1_A_ReadBattery_Init(); // timer for seconds
 while(1)
 { 
+CheckForParams();
 CheckForSet();       // done in interrupt
-CheckSystemBatteryMode();
 RunTimersNowCheck();
 WorkingMode();
-WDT_Enable(); // critical part may
+//WDT_Enable(); // critical part may
 ReadTimeNow();
 CheckForTimerActivationInRange();
 CheckForTimerActivationOutRange();
 Screen_1();       // for reading time
 Check_Timers();
-WDT_Disable();
+//WDT_Disable();
 TurnLoadsOffWhenGridOff();       // sometine when grid comes fast and cut it will not make interrupt so this second check for loads off
+CheckSystemBatteryMode();
 Delay_ms(200);
 }
 }
